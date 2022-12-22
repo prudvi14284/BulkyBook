@@ -1,4 +1,4 @@
-﻿using BulkyBook.Data;
+﻿using BulkyBook.DataAccess;
 using BulkyBook.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +15,7 @@ namespace BulkyBook.Controllers
 		//Index
 		public IActionResult Index()
 		{
-			var objectCategoryList = _db.Categories;
+			IEnumerable<Category> objectCategoryList = _db.Categories;
 			return View(objectCategoryList);
 		}
 
@@ -35,6 +35,7 @@ namespace BulkyBook.Controllers
 			{
 				ModelState.AddModelError("Name", "The DisplayOrder cannot exactly match the Name.");
 			}
+			//Server side validation
 			if (ModelState.IsValid)
 			{
 				_db.Categories.Add(obj);
