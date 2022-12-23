@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace BulkyBook.DataAccess.Repository.IRepository
 {
+	//Generic class
 	public interface IRepository<T> where T: class
 	{
 		//T - Category
