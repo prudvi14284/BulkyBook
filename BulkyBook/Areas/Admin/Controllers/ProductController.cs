@@ -107,46 +107,34 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
 			return View(obj);
 		}
 
-        //Get Action Method Delete
-        public IActionResult Delete(int? id)
-        {
-            if (id == null || id == 0)
-            {
-                return NotFound();
-            }
-            //var ProductFromDb = _db.Categories.Find(id);
-            var ProductFromDb = _unitOfWork.Product.GetFirstOrDefault(u => u.Id == id);
-            //var ProductFromDb = _db.Categories.SingleOrDefault(u => u.Id == id);
-            if (ProductFromDb == null)
-            {
-                return NotFound();
-            }
-            return View(ProductFromDb);
-        }
-
-        //Post Action Method Delete
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeletePost(int? id)
-        {
-            var obj = _unitOfWork.Product.GetFirstOrDefault(u => u.Id == id);
-            if (obj == null)
-            {
-                return NotFound();
-            }
-            _unitOfWork.Product.Remove(obj);
-            _unitOfWork.Save();
-            TempData["success"] = "Product deleted successfully";
-            return RedirectToAction("Index");
-        }
-
-        #region API CALLS
-        [HttpGet]
+		#region API CALLS
 		[HttpGet]
 		public IActionResult GetAll()
 		{
 			var productList = _unitOfWork.Product.GetAll(includeProperties: "Category,CoverType");
 			return Json(new { data = productList });
+		}
+
+		//POST
+		[HttpDelete]
+		public IActionResult Delete(int? id)
+		{
+			var obj = _unitOfWork.Product.GetFirstOrDefault(u => u.Id == id);
+			if (obj == null)
+			{
+				return Json(new { success = false, message = "Error while deleting" });
+			}
+
+			var oldImagePath = Path.Combine(_hostEnvironment.WebRootPath, obj.ImageUrl.TrimStart('\\'));
+			if (System.IO.File.Exists(oldImagePath))
+			{
+				System.IO.File.Delete(oldImagePath);
+			}
+
+			_unitOfWork.Product.Remove(obj);
+			_unitOfWork.Save();
+			return Json(new { success = true, message = "Delete Successful" });
+
 		}
 		#endregion
 	}
