@@ -39,7 +39,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
             }
             else
             {
-                company = _unitOfWork.Company.GetFirstOrDefault(u => u.Id== id);
+                company = _unitOfWork.Company.GetFirstOrDefault((System.Linq.Expressions.Expression<Func<Company, bool>>)(u => u.Id== id));
                 return View(company);
             }   
         }
@@ -82,7 +82,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
 		[HttpDelete]
 		public IActionResult Delete(int? id)
 		{
-			var obj = _unitOfWork.Company.GetFirstOrDefault(u => u.Id == id);
+			var obj = _unitOfWork.Company.GetFirstOrDefault((System.Linq.Expressions.Expression<Func<Company, bool>>)(u => u.Id == id));
 			if (obj == null)
 			{
 				return Json(new { success = false, message = "Error while deleting" });
