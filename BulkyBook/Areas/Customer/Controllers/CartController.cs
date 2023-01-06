@@ -14,17 +14,16 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
     [Authorize]
     public class CartController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
-		private readonly IEmailSender _emailSender;
-		[BindProperty]
-        public ShoppingCartVM ShoppingCartVM { get; set; }
-
-        public int OrderTotal { get; set; }
-        public CartController(IUnitOfWork unitOfWork, IEmailSender emailSender)
-        {
-            _unitOfWork = unitOfWork;
+		private readonly IUnitOfWork _unitOfWork;
+        //private readonly IEmailSender _emailSender;
+        [BindProperty]
+		public ShoppingCartVM ShoppingCartVM { get; set; }
+		public CartController(IUnitOfWork unitOfWork/*, IEmailSender emailSender*/)
+		{
+			_unitOfWork = unitOfWork;
+            //_emailSender = emailSender;
         }
-        public IActionResult Index()
+		public IActionResult Index()
         {
 			var claimsIdentity = (ClaimsIdentity)User.Identity;
 			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
@@ -169,7 +168,6 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 				Session session = service.Create(options);
 				_unitOfWork.OrderHeader.UpdateStripePaymentID(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
 				_unitOfWork.Save();
-
 				Response.Headers.Add("Location", session.Url);
 				return new StatusCodeResult(303);
 			}
@@ -183,11 +181,10 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 		public IActionResult OrderConfirmation(int id)
 		{
 			OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id, includeProperties: "ApplicationUser");
-			if(orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
+			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
 			{
 				var service = new SessionService();
 				Session session = service.Get(orderHeader.SessionId);
-
 				//check the stripe status
 				if (session.PaymentStatus.ToLower() == "paid")
 				{
@@ -196,9 +193,10 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 					_unitOfWork.Save();
 				}
 			}
-			_emailSender.SendEmailAsync(orderHeader.ApplicationUser.Email, "New Order - Bulky Book", "<p>New Order Created</p>");
-
-			List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+            //_emailSender.SendEmailAsync(orderHeader.ApplicationUser.Email, "New Order - Bulky Book", "<p>New Order Created</p>");
+            List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId ==
+			orderHeader.ApplicationUserId).ToList();
+			//HttpContext.Session.Clear();
 			_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
 			_unitOfWork.Save();
 			return View(id);
@@ -237,6 +235,7 @@ namespace BulkyBookWeb.Areas.Customer.Controllers
 			_unitOfWork.ShoppingCart.Remove(cart);
 			_unitOfWork.Save();
 			var count = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId).ToList().Count;
+			HttpContext.Session.SetInt32(SD.SessionCart, count);
 			return RedirectToAction(nameof(Index));
 		}
 
