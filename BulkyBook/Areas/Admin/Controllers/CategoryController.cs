@@ -13,6 +13,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
     //[Authorize(Roles = SD.Role_Admin)]
     public class CategoryController : Controller
     {
+        //Dependency injection
         private readonly IUnitOfWork _unitOfWork;
         public CategoryController(IUnitOfWork unitOfWork)
         {
